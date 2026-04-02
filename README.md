@@ -6,6 +6,29 @@ Inspired by [k9s](https://k9scli.io) and [holo](https://github.com/measure-sh/ho
 
 ![Rust](https://img.shields.io/badge/rust-stable-orange)
 ![License](https://img.shields.io/badge/license-MIT-blue)
+![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey)
+
+---
+
+## Screenshots
+
+> **Pods tab** — live pod table with status colors, restarts, and detail panel
+
+![Pods tab](screenshots/pods.png)
+
+> **Log viewer** — live-tailing with log level colorization
+
+![Log viewer](screenshots/logs.png)
+
+> **Secrets** — decoded key/value view
+
+![Secrets decoded](screenshots/secrets.png)
+
+> **Themes** — cycle through Default, Dracula, Nord, Tokyo Night with `T`
+
+![Themes](screenshots/themes.png)
+
+---
 
 ## Features
 
@@ -23,6 +46,8 @@ Inspired by [k9s](https://k9scli.io) and [holo](https://github.com/measure-sh/ho
 - **TSH cluster picker** — `c` to switch Teleport clusters (calls `tsh kube login`)
 - **Themes** — `T` to cycle Default / Dracula / Nord / Tokyo Night
 - **Prod safety** — context name turns red when it contains "prod"
+
+---
 
 ## Install
 
@@ -45,9 +70,10 @@ cargo install kubeview
 git clone https://github.com/harshjain-dev/kubeview
 cd kubeview
 cargo build --release
-# binary is at ./target/release/kubeview
 sudo cp target/release/kubeview /usr/local/bin/
 ```
+
+---
 
 ## Usage
 
@@ -56,6 +82,8 @@ kubeview
 ```
 
 Requires a valid `~/.kube/config` (same as `kubectl`).
+
+---
 
 ## Keybindings
 
@@ -103,10 +131,14 @@ Requires a valid `~/.kube/config` (same as `kubectl`).
 | `y` | Raw base64 YAML |
 | `e` | Edit a secret key value |
 
+---
+
 ## Prerequisites
 
 - A valid kubeconfig (`kubectl` must work)
 - For TSH cluster switching: [Teleport](https://goteleport.com/) `tsh` CLI
+
+---
 
 ## Architecture
 
@@ -116,6 +148,8 @@ Requires a valid `~/.kube/config` (same as `kubectl`).
 | Kubernetes API | `kube-rs` (native client, no kubectl shelling) |
 | Async runtime | `tokio` |
 | Fuzzy search | `fuzzy-matcher` |
+
+---
 
 ## License
 
