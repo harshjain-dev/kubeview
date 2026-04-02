@@ -80,3 +80,77 @@ jobs:
         with:
           files: artifacts/**
           generate_release_notes: true
+
+  update-formula:
+    name: Update Homebrew Formula
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download sha256 files
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Update Formula/kubeview.rb
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+
+          SHA_MACOS_ARM=$(awk '{print $1}' artifacts/kubeview-macos-aarch64.tar.gz.sha256)
+          SHA_MACOS_X86=$(awk '{print $1}' artifacts/kubeview-macos-x86_64.tar.gz.sha256)
+          SHA_LINUX_ARM=$(awk '{print $1}' artifacts/kubeview-linux-aarch64.tar.gz.sha256)
+          SHA_LINUX_X86=$(awk '{print $1}' artifacts/kubeview-linux-x86_64.tar.gz.sha256)
+
+          cat > Formula/kubeview.rb <<EOF
+          class Kubeview < Formula
+            desc "Terminal UI for Kubernetes — pods, logs, exec, port-forward, secrets and more"
+            homepage "https://github.com/harshjain-dev/kubeview"
+            version "${VERSION}"
+            license "MIT"
+
+            on_macos do
+              on_arm do
+                url "https://github.com/harshjain-dev/kubeview/releases/download/v#{version}/kubeview-macos-aarch64.tar.gz"
+                sha256 "${SHA_MACOS_ARM}"
+              end
+              on_intel do
+                url "https://github.com/harshjain-dev/kubeview/releases/download/v#{version}/kubeview-macos-x86_64.tar.gz"
+                sha256 "${SHA_MACOS_X86}"
+              end
+            end
+
+            on_linux do
+              on_arm do
+                url "https://github.com/harshjain-dev/kubeview/releases/download/v#{version}/kubeview-linux-aarch64.tar.gz"
+                sha256 "${SHA_LINUX_ARM}"
+              end
+              on_intel do
+                url "https://github.com/harshjain-dev/kubeview/releases/download/v#{version}/kubeview-linux-x86_64.tar.gz"
+                sha256 "${SHA_LINUX_X86}"
+              end
+            end
+
+            def install
+              bin.install "kubeview"
+            end
+
+            test do
+              assert_match "kubeview ${VERSION}", shell_output("#{bin}/kubeview --version")
+            end
+          end
+          EOF
+
+      - name: Commit and push updated formula
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/kubeview.rb
+          git commit -m "formula: update to ${GITHUB_REF_NAME}"
+          git push

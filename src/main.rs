@@ -14,6 +14,11 @@ use ratatui::{backend::CrosstermBackend, Terminal};
 use std::io;
 use std::time::Duration;
 
+fn restore_terminal() {
+    let _ = disable_raw_mode();
+    let _ = execute!(io::stdout(), LeaveAlternateScreen, DisableMouseCapture);
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     // Handle --version / -V before doing anything with the terminal
@@ -23,6 +28,13 @@ async fn main() -> Result<()> {
         return Ok(());
     }
 
+    // Panic hook: always restore terminal so the shell isn't left in raw mode
+    let default_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        restore_terminal();
+        default_hook(info);
+    }));
+
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
@@ -31,12 +43,7 @@ async fn main() -> Result<()> {
 
     let result = run_app(&mut terminal).await;
 
-    disable_raw_mode()?;
-    execute!(
-        terminal.backend_mut(),
-        LeaveAlternateScreen,
-        DisableMouseCapture
-    )?;
+    restore_terminal();
     terminal.show_cursor()?;
 
     if let Err(err) = result {
@@ -47,8 +54,32 @@ async fn main() -> Result<()> {
 }
 
 async fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> Result<()> {
-    let mut app = App::new().await?;
-    app.initial_load().await?;
+    // Build the kube client with a timeout so a hung TSH credential helper
+    // doesn't freeze the terminal. Ctrl+C works as soon as the event loop starts.
+    let app_result = tokio::time::timeout(
+        Duration::from_secs(15),
+        App::new(),
+    ).await;
+
+    let mut app = match app_result {
+        Ok(Ok(a)) => a,
+        Ok(Err(e)) => {
+            restore_terminal();
+            eprintln!("Failed to connect to Kubernetes: {e}");
+            eprintln!("\nIf using Teleport, run:  tsh login && tsh kube login <cluster>");
+            return Ok(());
+        }
+        Err(_) => {
+            restore_terminal();
+            eprintln!("Timed out connecting to Kubernetes (15s).");
+            eprintln!("\nIf using Teleport, run:  tsh login && tsh kube login <cluster>");
+            return Ok(());
+        }
+    };
+
+    if let Err(e) = app.initial_load().await {
+        app.status_message = format!("Load error: {e}");
+    }
 
     loop {
         terminal.draw(|frame| {
