@@ -29,7 +29,7 @@ Inspired by [k9s](https://k9scli.io) and [holo](https://github.com/measure-sh/ho
 ### Homebrew (macOS / Linux)
 
 ```bash
-brew tap YOUR_GITHUB_USERNAME/kubeview
+brew tap https://github.com/harshjain-dev/kubeview
 brew install kubeview
 ```
 
@@ -42,7 +42,7 @@ cargo install kubeview
 ### Build from source
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/kubeview
+git clone https://github.com/harshjain-dev/kubeview
 cd kubeview
 cargo build --release
 # binary is at ./target/release/kubeview
