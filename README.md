@@ -29,7 +29,7 @@ Inspired by [k9s](https://k9scli.io) and [holo](https://github.com/measure-sh/ho
 ### Homebrew (macOS / Linux)
 
 ```bash
-brew tap https://github.com/harshjain-dev/kubeview
+brew tap harshjain-dev/kubeview https://github.com/harshjain-dev/kubeview
 brew install kubeview
 ```
 
