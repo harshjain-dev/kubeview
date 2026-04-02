@@ -1,0 +1,29 @@
+[package]
+name = "kubeview"
+version = "0.1.0"
+edition = "2021"
+description = "A terminal UI for Kubernetes — monitor pods, tail logs, exec into containers, and manage resources without leaving the terminal."
+license = "MIT"
+repository = "https://github.com/YOUR_GITHUB_USERNAME/kubeview"
+homepage = "https://github.com/YOUR_GITHUB_USERNAME/kubeview"
+keywords = ["kubernetes", "tui", "kubectl", "k8s", "terminal"]
+categories = ["command-line-utilities"]
+readme = "README.md"
+
+[[bin]]
+name = "kubeview"
+path = "src/main.rs"
+
+[dependencies]
+ratatui = "0.29"
+crossterm = { version = "0.28", features = ["event-stream"] }
+tokio = { version = "1", features = ["full"] }
+kube = { version = "0.98", features = ["runtime", "client", "derive"] }
+kube-runtime = "0.98"
+k8s-openapi = { version = "0.24", features = ["latest"] }
+anyhow = "1"
+futures = "0.3"
+fuzzy-matcher = "0.3"
+chrono = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
